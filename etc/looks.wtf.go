@@ -196,6 +196,6 @@ func main() {
   } else {
     color.Set(color.FgGreen)
   }
-  fmt.Println(EARS[r3][0], EYES[r2][0], MOUTHS[r1], EYES[r2][1], EARS[r3][1])
+  fmt.Println("\n\t", EARS[r3][0], EYES[r2][0], MOUTHS[r1], EYES[r2][1], EARS[r3][1], "\n")
   color.Unset()
 }
