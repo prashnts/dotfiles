@@ -198,7 +198,7 @@ func main() {
   rand.Seed(time.Now().UnixNano())
   l_mouth, l_eyes, l_ears := len(MOUTHS), len(EYES), len(EARS)
   app := cli.NewApp()
-  app.Name = "dafaq"
+  app.Name = "dafaq.lol"
   app.Version = "0.1.0"
   app.Usage = fmt.Sprintf("generate them emotes. %d and counting", (l_mouth * l_eyes * l_ears))
 
