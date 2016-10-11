@@ -17,7 +17,18 @@ source "${0:h}/external/zsh-autosuggestions.zsh" || return 1
 
 # Set highlight color, default 'fg=8'.
 zstyle -s ':prezto:module:autosuggestions:color' found \
-  'ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE' || ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=240'
+  'ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE' || ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+
+zstyle -s ':prezto:module:autosuggestions:accept' found \
+  'ZSH_AUTOSUGGEST_ACCEPT_WIDGETS' || ZSH_AUTOSUGGEST_ACCEPT_WIDGETS=(
+    forward-char
+    end-of-line
+    vi-end-of-line
+  )
+
+zstyle -s ':prezto:module:autosuggestions:accept_partial' found \
+  'ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS' || ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS=()
+
 
 # Disable highlighting.
 if ! zstyle -t ':prezto:module:autosuggestions' color; then
