@@ -116,16 +116,15 @@ function prompt_damned_setup {
 
   # Set git-info parameters.
   zstyle ':prezto:module:git:info' verbose 'yes'
-  zstyle ':prezto:module:git:info:branch' format ' @%F{2}%b%f'
+  zstyle ':prezto:module:git:info:branch' format ' * %F{2}%b%f'
   zstyle ':prezto:module:git:info:added' format '%F{1}+%f'
   zstyle ':prezto:module:git:info:ahead' format '%F{4}⇡%f'
   zstyle ':prezto:module:git:info:behind' format '%F{4}⇣%f'
-  zstyle ':prezto:module:git:info:commit' format ' #%F{5}%.7c%f%'
 
   zstyle ':prezto:module:git:info:modified' format '%F{4}M%f'
 
   zstyle ':prezto:module:git:info:keys' format \
-    'status' '%a%A%B%C%m%c%b'
+    'status' '%a%A%B%m%c%b'
 
   zstyle ':prezto:module:python:info:virtualenv' format \
     '%F{14}⬢%f'
