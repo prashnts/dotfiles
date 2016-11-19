@@ -116,18 +116,20 @@ function prompt_damned_setup {
 
   # Set git-info parameters.
   zstyle ':prezto:module:git:info' verbose 'yes'
-  zstyle ':prezto:module:git:info:branch' format ' * %F{2}%b%f'
-  zstyle ':prezto:module:git:info:added' format '%F{1}+%f'
-  zstyle ':prezto:module:git:info:ahead' format '%F{4}⇡%f'
-  zstyle ':prezto:module:git:info:behind' format '%F{4}⇣%f'
+  zstyle ':prezto:module:git:info:branch' format '%F{2}ᮌ%f %F{2}%b%f'
+  zstyle ':prezto:module:git:info:added' format '%F{5}ᮿ%f'
+  zstyle ':prezto:module:git:info:modified' format '%F{1}ᮋ%f'
+  zstyle ':prezto:module:git:info:ahead' format '%F{4}↑%f '
+  zstyle ':prezto:module:git:info:behind' format '%F{4}↓%f '
 
-  zstyle ':prezto:module:git:info:modified' format '%F{4}M%f'
 
   zstyle ':prezto:module:git:info:keys' format \
-    'status' '%a%A%B%m%c%b'
+    'status' '%A%B%a%m%c%b'
 
   zstyle ':prezto:module:python:info:virtualenv' format \
-    '%F{14}⬢%f'
+    ' %F{14}ᝌ%f'
+
+# 𐰒𐋇 ꗬ ꕱ ᝌ ᮜ ⥄ ᮻ ᮌ ᮛ ᮒ ᮑ ᮏ
 
   # Define prompts.
   PROMPT='%K{238}%F{252} $_prompt_damned_pwd %f%k%F{238}%f'
