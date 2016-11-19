@@ -41,7 +41,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = "xkpswd"
-	app.Version = "0.1.1"
+	app.Version = "0.1.2"
 	app.Usage = fmt.Sprintf("Generate diceware-xkcd-ish passwords")
 	app.Authors = []cli.Author{
 		cli.Author{
@@ -75,17 +75,26 @@ func main() {
 		if !clip {
 			clipboard.WriteAll(password)
 		}
-		color.Set(color.FgBlue)
-		fmt.Print("xkpswd")
 		color.Set(color.FgCyan)
-		fmt.Printf(" <%d>", count)
-		color.Set(color.FgBlue)
-		fmt.Print(": ")
+		fmt.Printf("xkpswd <%d>: ", count)
 		color.Set(color.FgGreen, color.Bold)
 		fmt.Println(password)
 		color.Unset()
 		return nil
 	}
+
+	defer func() {
+		r := recover()
+		if r != nil {
+			if count < 0 {
+				fmt.Println(
+					color.CyanString("xkpswd"),
+					color.RedString("`count` should be greater than zero."))
+			} else {
+				panic(r)
+			}
+		}
+	}()
 
 	app.Run(os.Args)
 }
