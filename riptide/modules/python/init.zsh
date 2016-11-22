@@ -9,11 +9,11 @@
 # Load manually installed pyenv into the shell session.
 if [[ -s "$HOME/.pyenv/bin/pyenv" ]]; then
   path=("$HOME/.pyenv/bin" $path)
-  eval "$(pyenv init -)"
+  eval "$(pyenv init - --no-rehash)"
 
 # Load package manager installed pyenv into the shell session.
 elif (( $+commands[pyenv] )); then
-  eval "$(pyenv init -)"
+  eval "$(pyenv init - --no-rehash)"
 
 # Prepend PEP 370 per user site packages directory, which defaults to
 # ~/Library/Python on Mac OS X and ~/.local elsewhere, to PATH. The
