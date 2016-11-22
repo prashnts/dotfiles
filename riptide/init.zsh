@@ -31,7 +31,7 @@ function pmodload {
   pmodules=("$argv[@]")
 
   # Add functions to $fpath.
-  fpath=(${pmodules:+${ZDOTDIR:-$HOME}/.zprezto/modules/${^pmodules}/functions(/FN)} $fpath)
+  fpath=(${pmodules:+$DOTFILEDIR/riptide/modules/${^pmodules}/functions(/FN)} $fpath)
 
   function {
     local pfunction
@@ -40,7 +40,7 @@ function pmodload {
     setopt LOCAL_OPTIONS EXTENDED_GLOB
 
     # Load Prezto functions.
-    for pfunction in ${ZDOTDIR:-$HOME}/.zprezto/modules/${^pmodules}/functions/$~pfunction_glob; do
+    for pfunction in $DOTFILEDIR/riptide/modules/${^pmodules}/functions/$~pfunction_glob; do
       autoload -Uz "$pfunction"
     done
   }
@@ -49,19 +49,19 @@ function pmodload {
   for pmodule in "$pmodules[@]"; do
     if zstyle -t ":prezto:module:$pmodule" loaded 'yes' 'no'; then
       continue
-    elif [[ ! -d "${ZDOTDIR:-$HOME}/.zprezto/modules/$pmodule" ]]; then
+    elif [[ ! -d "$DOTFILEDIR/riptide/modules/$pmodule" ]]; then
       print "$0: no such module: $pmodule" >&2
       continue
     else
-      if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/modules/$pmodule/init.zsh" ]]; then
-        source "${ZDOTDIR:-$HOME}/.zprezto/modules/$pmodule/init.zsh"
+      if [[ -s "$DOTFILEDIR/riptide/modules/$pmodule/init.zsh" ]]; then
+        source "$DOTFILEDIR/riptide/modules/$pmodule/init.zsh"
       fi
 
       if (( $? == 0 )); then
         zstyle ":prezto:module:$pmodule" loaded 'yes'
       else
         # Remove the $fpath entry.
-        fpath[(r)${ZDOTDIR:-$HOME}/.zprezto/modules/${pmodule}/functions]=()
+        fpath[(r)$DOTFILEDIR/riptide/modules/${pmodule}/functions]=()
 
         function {
           local pfunction
@@ -71,7 +71,7 @@ function pmodload {
           setopt LOCAL_OPTIONS EXTENDED_GLOB
 
           # Unload Prezto functions.
-          for pfunction in ${ZDOTDIR:-$HOME}/.zprezto/modules/$pmodule/functions/$~pfunction_glob; do
+          for pfunction in $DOTFILEDIR/riptide/modules/$pmodule/functions/$~pfunction_glob; do
             unfunction "$pfunction"
           done
         }
@@ -86,10 +86,7 @@ function pmodload {
 # Prezto Initialization
 #
 
-# Source the Prezto configuration file.
-if [[ -s "${ZDOTDIR:-$HOME}/.zpreztorc" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zpreztorc"
-fi
+source "$DOTFILEDIR/riptide/.zpreztorc"
 
 # Disable color and theme in dumb terminals.
 if [[ "$TERM" == 'dumb' ]]; then
