@@ -31,7 +31,7 @@ _echo()
 {
   if [ "X$1" = "X-n" ]; then
     shift
-    printf "%s" "$*"
+    printf "\e[38;2;%sm%s" $2 $1
   else
     printf "%s\n" "$*"
   fi
@@ -55,18 +55,20 @@ spark()
     numbers=$numbers${numbers:+ }$n
   done
 
-  # print ticks
-  local ticks=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
+  local ticks=(⠤ ⠴ ⠶ ⠾ ⠿)
+  local color=("50;94;141" "41;120;142" "34;167;132" "121;209;81" "253;231;36")
 
   # use a high tick if data is constant
-  (( min == max )) && ticks=(▅ ▆)
+  (( min == max )) && ticks=(⠶ ⠿)
+  (( min == max )) && color=("34;167;132" "121;209;81")
 
-  local f=$(( (($max-$min)<<8)/(${#ticks[@]}-1) ))
+  local f=$(( (($max-$min)<<5)/(${#ticks[@]}-1) ))
   (( f < 1 )) && f=1
 
   for n in $numbers
   do
-    _echo -n ${ticks[$(( ((($n-$min)<<8)/$f) ))]}
+    local ix=$(( ((($n-$min)<<5)/$f) ))
+    _echo -n ${ticks[$ix]} ${color[$ix]}
   done
   _echo
 }
