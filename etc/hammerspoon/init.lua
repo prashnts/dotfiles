@@ -1,5 +1,7 @@
+require 'libzen'
+require 'iTerm2'
 
-
+local log = hs.logger.new('riptide', 'debug')
 --
 -- Bring all Finder windows forward when one gets activated
 function finderActivationHandler(appName, eventType, appObject)
@@ -30,34 +32,18 @@ appWatcher:start()
 
 
 -- Mute spotify if there's an Ad. Yeah...
-function muteSpotifyOnAd()
-  if (hs.spotify.isRunning()) then
-    if (hs.spotify.getCurrentTrack():lower() == 'spotify') then
-      hs.spotify.setVolume(0)
-    else
-      hs.spotify.setVolume(100)
+local _spotifyWasMuted
+local function muteSpotifyOnAd()
+  if hs.spotify.isPlaying() then
+    if hs.spotify.getCurrentTrack():lower():has('spotify') then
+      _spotifyWasMuted = true
+      hs.audiodevice.defaultOutputDevice():setMuted(true)
+    elseif _spotifyWasMuted then
+      _spotifyWasMuted = false
+      hs.audiodevice.defaultOutputDevice():setMuted(false)
     end
   end
 end
-hs.timer.doEvery(10, muteSpotifyOnAd)
+local spotify = hs.timer.new(5, muteSpotifyOnAd, true)
+spotify:start()
 
-
--- Alternative iTerm2 hotkey
-function iTermHotkeyHandler()
-  local iterm = hs.application.get('iTerm2')
-  if (iterm) then
-    local window = iterm:mainWindow()
-    if not window then
-      if iterm:selectMenuItem('New Window') then
-        window = iterm:mainWindow()
-      end
-      return
-    end
-    if iterm:isFrontmost() then
-      iterm:hide()
-    else
-      window:focus()
-    end
-  end
-end
-hs.hotkey.bind('cmd', 'space', iTermHotkeyHandler)
