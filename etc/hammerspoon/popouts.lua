@@ -14,11 +14,12 @@ toolbar = wktoolbar.new('poptools', {
 toolbar:displayMode('icon')
 toolbar:sizeMode('small')
 
-g = hs.geometry.rect(900, 20, 520, 550)
-ww = hs.webview.newBrowser(g)
+local rect = hs.geometry.rect(900, 20, 520, 550)
+ww = hs.webview.newBrowser(rect)
 ww:windowStyle(
   hs.webview.windowMasks['titled'] |
   hs.webview.windowMasks['resizable'] |
+  hs.webview.windowMasks['closable'] |
   hs.webview.windowMasks['utility'] |
   hs.webview.windowMasks['HUD']
 )
@@ -39,6 +40,6 @@ function webViewClickHandler()
   hidden = not hidden
 end
 
-local menuIcon = hs.menubar.new()
+popoutMenuIcon = hs.menubar.new()
   :setIcon(getIcon('facebook', 16))
   :setClickCallback(webViewClickHandler)
