@@ -1,46 +1,64 @@
+require 'consts'
+
 local log = hs.logger.new('riptide.ddcci', 'debug')
 
 local ddcctl = '/Users/prashantsinha/opt/bin/ddcctl'
 local CMDFMT = '%s -d 1 -%s %s'
 
 -- Use volume keys when external monitor is connected with ddc
-BASE_VOLUME = 8
-function syncVolume(volume)
-  local cmd = CMDFMT:format(ddcctl, 'v', volume)
-  log:d('sync volume with', cmd)
-  hs.execute(cmd)
+if hs.settings.get(HS_VOLUME) == nil then
+  hs.settings.set(HS_VOLUME, 8)
+end
+
+function syncVolume()
+  if hs.settings.get(HS_EXT_DISP) == true then
+    local volume = hs.settings.get(HS_VOLUME)
+    local cmd = CMDFMT:format(ddcctl, 'v', volume)
+    log:d('sync volume with', cmd)
+    hs.execute(cmd)
+  else
+    log:d('no external display, wont sync volume')
+  end
 end
 
 function volumeKeyUp()
-  if BASE_VOLUME < 254 then
-    BASE_VOLUME = BASE_VOLUME + 1
+  local basevol = hs.settings.get(HS_VOLUME)
+  if basevol < 254 then
+    hs.settings.set(HS_VOLUME, basevol + 1)
   end
-  syncVolume(BASE_VOLUME)
+  syncVolume()
 end
 
 function volumeKeyDown()
-  if BASE_VOLUME > 1 then
-    BASE_VOLUME = BASE_VOLUME - 1
+  local basevol = hs.settings.get(HS_VOLUME)
+  if basevol > 1 then
+    hs.settings.set(HS_VOLUME, basevol - 1)
   end
-  syncVolume(BASE_VOLUME)
+  syncVolume()
 end
 
-hs.hotkey.bind({"ctrl", "alt"}, "x", nil, volumeKeyUp, nil, nil)
-hs.hotkey.bind({"ctrl", "alt"}, "z", nil, volumeKeyDown, nil, nil)
+
+-- Brightness settings
+function setMonitorBrightness(val)
+  local cmd = CMDFMT:format(ddcctl, 'b', val)
+  log:d('sync brightness with', cmd)
+  hs.execute(cmd)
+end
 
 -- Sync main display brightness with external monitor
-PREVIOUS_BRIGHTNESS = hs.brightness.get()
 function syncMonitorBrightness()
   local mainDisplayBrightness = hs.brightness.get()
-  if PREVIOUS_BRIGHTNESS ~= mainDisplayBrightness then
-    PREVIOUS_BRIGHTNESS = mainDisplayBrightness
-    local cmd = CMDFMT:format(ddcctl, 'b', mainDisplayBrightness)
-    log:d('sync brightness with', cmd)
-    hs.execute(cmd)
-  else
-    log:d('sync brightness: nothing changed')
-  end
+  setMonitorBrightness(mainDisplayBrightness)
 end
 
-brightness_sync = hs.timer.new(5, syncMonitorBrightness, true)
-brightness_sync:start()
+function setMonitorBrightnessLow()
+  setMonitorBrightness(0)
+end
+
+function setMonitorBrightnessMedium()
+  setMonitorBrightness(50)
+end
+
+function setMonitorBrightnessHigh()
+  setMonitorBrightness(100)
+end
