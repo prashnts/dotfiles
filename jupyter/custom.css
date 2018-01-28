@@ -191,15 +191,34 @@ div.cell {
   background: #1B2B34;
 }
 
-div.cell.selected {
+div.cell.code_cell {
+  background: #1B2B34;
+}
+
+div.cell.text_cell {
+  background: #fff;
+}
+
+div.cell.code_cell.selected {
   border-left: 5px solid #4994F3;
   background: #1B2B34;
 }
 
-.edit_mode .cell.selected {
+div.cell.text_cell.selected {
+  border-left: 5px solid #4994F3;
+  background: #fff;
+}
+
+.edit_mode .cell.code_cell.selected {
   border-left-width: 5px !important;
   border-left-color: #FDC74D !important;
   background: #1B2B34 !important;
+}
+
+.edit_mode .cell.text_cell.selected {
+  border-left-width: 5px !important;
+  border-left-color: #FDC74D !important;
+  background: #fff !important;
 }
 
 div.out_prompt_overlay:hover {
@@ -232,7 +251,7 @@ div.input_area {
 }
 
 div#notebook, div.CodeMirror, div.output_area pre, div.output_wrapper, div.prompt {
-  font-family: 'Hack', monospace !important;
+  font-family: 'Fira Code', monospace !important;
 }
 
 div.output_scroll {
@@ -272,6 +291,17 @@ div.btn.output_collapsed:focus {
 }
 div.output_html { font-family: sans-serif; }
 table.dataframe tr {border: 1px #93a1a1;}
+
+div.text_cell_render {
+  color: #2c3643;
+}
+div.rendered_html {
+  font-family: 'Input';
+}
+.rendered_html h1, .rendered_html h2, .rendered_html h3,
+.rendered_html h4, .rendered_html h5, .rendered_html h6 {
+  font-family: 'Karla';
+}
 
 
 span.ansiblack {color: #2c3643;}
@@ -314,3 +344,24 @@ div.output_stderr pre {color: #eee8d5;}
 
 .cm-s-ipython .CodeMirror-matchingbracket { text-decoration: underline; color: #99a9b3 !important;}
 
+.cm-s-default span.cm-header {color: #6c71c4;}
+
+
+/* Completions */
+.completions {
+  border-radius: 4px;
+  border-color: #212933;
+  box-shadow: 0px 6px 10px -1px #212933;
+}
+.completions select {
+  background: #3b444f;
+}
+.completions select option.introspection {
+  color: #99a9b3;
+}
+.completions select option.context {
+  color: #0fdebd;
+}
+.completions select option[selected] {
+  color: #fdc74d;
+}
