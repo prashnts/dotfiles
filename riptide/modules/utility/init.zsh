@@ -59,6 +59,10 @@ alias pu='pushd'
 alias rm="${aliases[rm]:-rm} -i"
 alias type='type -a'
 
+# Download Aliases
+alias dl:d='aria2c -d ~/Downloads'
+alias dl:p='aria2c -d ~/whiteboard/dlna-media'
+
 # ls
 if is-callable 'dircolors'; then
   # GNU Core Utilities
@@ -98,8 +102,8 @@ alias lm='la | "$PAGER"' # Lists human readable sizes, hidden files through page
 alias lx='ll -XB'        # Lists sorted by extension (GNU only).
 alias lk='ll -Sr'        # Lists sorted by size, largest last.
 #alias lt='ll -tr'        # Lists sorted by date, most recent last.
-alias lc='lt -c'         # Lists sorted by date, most recent last, shows change time.
-alias lu='lt -u'         # Lists sorted by date, most recent last, shows access time.
+alias lc='ll -tr -c'         # Lists sorted by date, most recent last, shows change time.
+alias lu='ll -tr -u'         # Lists sorted by date, most recent last, shows access time.
 alias sl='ls'            # I often screw this up.
 
 # Grep

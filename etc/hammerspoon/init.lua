@@ -1,19 +1,27 @@
 require 'hs.ipc'
 require 'libzen'
-require 'ddcci'
 require 'consts'
+
+hs.loadSpoon('RoundedCorners')
+
+-- Set docs server
+hs.doc.hsdocs.forceExternalBrowser(true)
+hs.doc.hsdocs.moduleEntitiesInSidebar(true)
+hs.doc.hsdocs.browserDarkMode(false)
 
 local log = hs.logger.new('riptide', 'debug')
 
 -- Bring all Finder windows forward when one gets activated
-function finderActivationHandler(appName, eventType, appObject)
+function cascadingWindowActivationHandler(appName, eventType, appObject)
   if (eventType == hs.application.watcher.activated) then
-    if (appName == "Finder") then
+    if (appName:has('Finder')) then
       appObject:selectMenuItem({"Window", "Bring All to Front"})
+    elseif (appName:has('ImageJ')) then
+      appObject:mainWindow():selectMenuItem({"Window", "Show All"})
     end
   end
 end
-appWatcher = hs.application.watcher.new(finderActivationHandler)
+appWatcher = hs.application.watcher.new(cascadingWindowActivationHandler)
 appWatcher:start()
 
 -- Misc actions
@@ -25,45 +33,66 @@ function lockScreen()
   hs.caffeinate.lockScreen()
 end
 
--- Add menubar controls
-local actionIcon = getIcon('call_to_action', 16)
-bar = hs.menubar.new()
-  :setIcon(actionIcon)
-  :setMenu({
-    { title = '-' },
-    { title = 'Secondary Monitor Brightness', disabled = true },
-    { title = 'Sync', fn = syncMonitorBrightness, image = getIcon('broken_image', 16) },
-    { title = 'Turn Down', fn = setMonitorBrightnessLow, image = getIcon('brightness_low', 16) },
-    { title = 'Okay-Okay', fn = setMonitorBrightnessMedium, image = getIcon('brightness_medium', 16) },
-    { title = 'Crank Up', fn = setMonitorBrightnessHigh, image = getIcon('brightness_high', 16) },
-    { title = '-' },
-    { title = 'Start Screensaver', fn = startScreenSaver, image = getIcon('lightbulb_outline', 16) },
-    { title = 'Lock', fn = lockScreen, image = getIcon('lock', 16) },
-  })
+-- Rounded Corners
+rcorners = spoon.RoundedCorners:start()
 
-function logev(event)
-  local keyProps = event:systemKey()
-  if keyProps.down then
-    if keyProps.key == 'SOUND_UP' then
-      volumeKeyUp()
-    elseif keyProps.key == 'SOUND_DOWN' then
-      volumeKeyDown()
-    end
-  end
-end
 
-tap = hs.eventtap.new({ hs.eventtap.event.types.NSSystemDefined }, logev)
-  :start()
+-- Show an icon if we're using an Airplay Speaker
+local airplayStatusIcon = hs.menubar.new()
+  :setIcon(getIcon('airplay', 16))
+  :setTooltip('Using Airplay Audio')
+  :removeFromMenuBar()
 
--- Watch screen for changes
-function onScreenLayoutChange()
-  if hs.screen.allScreens()[2] ~= nil then
-    hs.settings.set(HS_EXT_DISP, true)
+function airplayStatus(_)
+  if (hs.audiodevice.current().name:has('Bunker')) then
+    airplayStatusIcon:returnToMenuBar()
+    log:i('Using Airplay, enabled icon.')
   else
-    hs.settings.set(HS_EXT_DISP, false)
+    airplayStatusIcon:removeFromMenuBar()
+    log:i('Not using Airplay, disabled icon.')
   end
 end
 
-screentap = hs.screen.watcher.new(onScreenLayoutChange)
-  :start()
-onScreenLayoutChange()
+hs.audiodevice.watcher.setCallback(airplayStatus)
+hs.audiodevice.watcher.start()
+airplayStatus(nil)
+
+-- Network Reachability
+local noNetworkStatusIcon = hs.menubar.new()
+  :setIcon(getIcon('triangle', 16))
+  :setTooltip('No network')
+  :removeFromMenuBar()
+
+function networkStatus(self, flags)
+  if (flags & hs.network.reachability.flags.reachable) > 0 then
+    noNetworkStatusIcon:removeFromMenuBar()
+  else
+    noNetworkStatusIcon:returnToMenuBar()
+  end
+end
+
+hs.network.reachability.internet():setCallback(networkStatus):start()
+
+
+-- USB Serial Device Port
+function publishUSBSerialPort(device)
+  log:d(hs.inspect(device))
+end
+
+local usb = hs.usb.watcher.new(publishUSBSerialPort):start()
+
+-- Auto Reload the Config File on Changes
+hs.notify.register('#reloadConfig', hs.reload)
+function askForConfigReload(paths, flags)
+  if (flags[1].itemRenamed) then
+    log:d('Reloading Config File')
+    hs.notify.new('#reloadConfig')
+      :autoWithdraw(true)
+      :title('Riptide Spoons')
+      :subTitle('Reload Configuration File?')
+      :actionButtonTitle('Reload')
+      :setIdImage(getIcon('reload', 20))
+      :send()
+  end
+end
+local configWatcher = hs.pathwatcher.new('./init.lua', askForConfigReload):start()

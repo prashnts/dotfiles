@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+printf "\e[32mPDFs merged to -> \e[0m$1\n"
+
+gs -q -sPAPERSIZE=a4 \
+    -dNOPAUSE \
+    -dBATCH \
+    -sDEVICE=pdfwrite \
+    -SOutputFile="$1" \
+    "${@:2}"
