@@ -1,0 +1,60 @@
+/*This file contains any manual css for this page that needs to override the global styles.
+This is only required when different pages style the same element differently. This is just
+a hack to deal with our current css styles and no new styling should be added in this file.*/
+
+#ipython-main-app {
+    position: relative;
+}
+
+
+div#header:before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  background: #ffffff52;
+  z-index: -1;
+}
+
+div#header:after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  height: 25px;
+  background: #ededed94;
+  width: 100vw;
+  backdrop-filter: blur(5px);
+  z-index: -1;
+  border-top: 1px solid #C0BFBE;
+}
+
+span.autosave_status {
+  right: 50px;
+}
+
+.text_cell_render.rendered_html:before {
+  content: '';
+  background: #fff;
+  width: 100vw;
+  height: 100%;
+  position: absolute;
+  z-index: -1;
+  left: -90px;
+  top: 0;
+}
+
+.cell.running:before {
+  background: #F44336;
+  width: 20px;
+}
+
+.output.output_scroll:before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 7px;
+  border-radius: 0 0 4px 4px;
+  background: #81C784;
+}

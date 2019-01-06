@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+shopt -s extglob dotglob nocasematch
+# cat jupyter.zen.noop.pw/static/notebook/**/*.css* > compiled.css
+
+cd jupyter.zen.noop.pw/static
+
+ls components/**/*css*
+
+# cat jupyter.zen.noop.pw/static/components/**/+(css) >> compiled.css
+
+# cat jupyter.zen.noop.pw/static/style/**/*.css* >> compiled.css

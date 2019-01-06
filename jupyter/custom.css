@@ -2,6 +2,8 @@
 
 body {
   position: relative;
+  font-family: 'Interface';
+  font-weight: 300;
 }
 
 body.notebook_app {
@@ -31,7 +33,8 @@ body > #header #header-container {
 
 #ipython_notebook {
   margin: 0;
-  display: none;
+  float: right !important;
+  filter: brightness(10) opacity(0.8);
 }
 
 #kernel_logo_widget {
@@ -156,10 +159,20 @@ div.navbar-collapse {
   background: #414F61;
 }
 
+.nav-tabs {
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  font-size: smaller;
+  font-weight: 500;
+}
+
 .dropdown-menu {
   color: #dbe6ec;
   background-color: #414F61;
   border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: x-small;
 }
 .dropdown-menu > li > a,
 .dropdown-submenu > a:after {
@@ -226,9 +239,9 @@ div.out_prompt_overlay:hover {
 }
 
 .prompt {
-  width: 80px;
-  max-width: 80px;
-  min-width: 80px;
+  width: 0;
+  max-width: 5;
+  min-width: 50px;
   color: #96A1AA;
   background: #303B48;
 }
@@ -251,7 +264,7 @@ div.input_area {
 }
 
 div#notebook, div.CodeMirror, div.output_area pre, div.output_wrapper, div.prompt {
-  font-family: 'Fira Code', monospace !important;
+  font-family: Input !important;
 }
 
 div.output_scroll {
@@ -364,4 +377,14 @@ div.output_stderr pre {color: #eee8d5;}
 }
 .completions select option[selected] {
   color: #fdc74d;
+}
+
+
+/* Buttons and stuff */
+
+.btn {
+  padding: 2px 5px;
+  border-radius: 2px;
+  border: none;
+  box-shadow: 0 0 1px #666;
 }
