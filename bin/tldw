@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+_VERSION='0.1.1'
+_ME=$(basename "${0}")
+_HERE=$(dirname "${0}")
+
+_NAME=$(printf "\x1b[36m🆃  🅻  🅳  🆆\x1b[0m")
+
+BANNER=$(cat <<HEREDOC
+
+  ${_NAME}
+  v${_VERSION}
+
+  too long;
+  didnt write.
+
+HEREDOC
+)
+
+
+source "${_HERE}/../etc/sh-utils/pandalib.sh"
+
+__sigint () {
+  printf '\n'
+  _abort 'Ended all sessions'
+}
+trap __sigint SIGINT
+
+
+lsusb () {
+  ioreg -p IOUSB -w0 | sed 's/[^o]*o //; s/@.*$//' | grep -v '^Root.*'
+}
+
+ls-serial () {
+  ls /dev/tty.* | grep -vi bluetooth
+}
+
+_main
