@@ -14,7 +14,6 @@ function getIcon(name, size)
   if size == nil then
     return img
   else
-    log:d('size')
     return img:setSize({h = size, w = size})
   end
 end

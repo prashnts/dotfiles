@@ -4,6 +4,11 @@ require 'consts'
 
 hs.loadSpoon('RoundedCorners')
 
+-- Set current working directory to ~/.hammerspoon. This used to be _not_
+-- required, but as of 2021 May, I keep running into error with hs.fs.currentDir
+-- which does not return any value. So we're hardcoding config location to home.
+hs.fs.chdir("~/.hammerspoon")
+
 -- Set docs server
 hs.doc.hsdocs.forceExternalBrowser(true)
 hs.doc.hsdocs.moduleEntitiesInSidebar(true)
