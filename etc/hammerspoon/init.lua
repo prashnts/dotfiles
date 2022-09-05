@@ -26,8 +26,8 @@ function cascadingWindowActivationHandler(appName, eventType, appObject)
     end
   end
 end
-appWatcher = hs.application.watcher.new(cascadingWindowActivationHandler)
-appWatcher:start()
+-- appWatcher = hs.application.watcher.new(cascadingWindowActivationHandler)
+-- appWatcher:start()
 
 -- Misc actions
 function startScreenSaver()
