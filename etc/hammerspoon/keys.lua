@@ -3,12 +3,15 @@
 -- Quit Karabiner first, it grabs the keyboard. Undo: keys.reset().
 local M = {}
 
-local CAPS, F18, GRAVE, ISO, LSHIFT = 0x39, 0x6D, 0x35, 0x64, 0xE1
+-- Apple's ISO board sends these two swapped: @# (top left) is 0x64 and
+-- <> (left of W) is 0x35. With the US layout, 0x35 types `~.
+local CAPS, F18, LSHIFT = 0x39, 0x6D, 0xE1
+local TOPLEFT, LTGT = 0x64, 0x35
 M.all = {{CAPS, F18}}  -- every keyboard: Caps Lock -> F18, the hyper trigger
 M.builtin = {          -- the French ISO laptop board only
   {CAPS, F18},
-  {GRAVE, ISO},        -- @# top left -> `~ (macOS swaps these two on ISO)
-  {ISO, LSHIFT},       -- <> left of W -> Left Shift
+  {TOPLEFT, LTGT},     -- @# top left -> `~
+  {LTGT, LSHIFT},      -- <> -> Left Shift
 }
 M.HYPER = {'cmd', 'alt', 'ctrl', 'shift'}
 
