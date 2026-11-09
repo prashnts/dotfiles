@@ -17,9 +17,19 @@ M.switcher = hs.window.switcher.new(M.filter,
 
 local function fwd() M.switcher:next() end
 local function prev() M.switcher:previous() end
-M.keys = {
-  hs.hotkey.bind({'cmd'}, 'tab', fwd, nil, fwd),
-  hs.hotkey.bind({'cmd', 'shift'}, 'tab', prev, nil, prev),
-}
+-- macOS keeps ⌘⇥ from hotkeys, so take it in an event tap (Accessibility).
+local TAB = hs.keycodes.map.tab
+M.tap = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(e)
+  if e:getKeyCode() ~= TAB then return false end
+  local f = e:getFlags()
+  if not f.cmd or f.alt or f.ctrl then return false end
+  if f.shift then prev() else fwd() end
+  return true
+end):start()
+
+-- macOS disables a tap that once answered too slowly: switch it back on.
+M.watchdog = hs.timer.doEvery(5, function()
+  if not M.tap:isEnabled() then M.tap:start() end
+end)
 
 return M
