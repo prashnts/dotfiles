@@ -43,6 +43,9 @@ if [ -d "$repo/riptide/tmux/tmuxinator" ]; then
   mkdir -p "$HOME/.config"
   link "$repo/riptide/tmux/tmuxinator" "$HOME/.config/tmuxinator"
 fi
+if [ "$(uname)" = Darwin ]; then
+  link "$repo/etc/hammerspoon" "$HOME/.hammerspoon"
+fi
 
 # History: riptide uses ~/.zhistory, omz used ~/.zsh_history (same format).
 # Old lines first, then link the old name so both stay in one file.

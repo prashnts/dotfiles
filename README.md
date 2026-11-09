@@ -7,6 +7,8 @@ Useless (and useful!) stuffs I do to my terminal.
   modules in `riptide/contrib/`).
 - `riptide/tmux/tmux.conf`: tmux
 - `bin/`: small scripts, on `$PATH`.
+- `etc/hammerspoon/`: macOS keys, window switcher, Wi-Fi off in sleep
+  (replaces BetterTouchTool + Karabiner), linked to `~/.hammerspoon`.
 
 **gibbrish**:
 
