@@ -1,19 +1,29 @@
+# 🆁 🅸 🅿︎ 🆃 🅸 🅳 🅴
 #
 # Executes commands at the start of an interactive session.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
+# Host-only bits go in ~/.zshrc.local (not in the repo).
 #
 
-# Source Prezto.
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+# Completions on fpath before Prezto runs compinit.
+fpath=(~/.zfunc(N) $fpath)
+if [[ -n $HOMEBREW_PREFIX ]]; then
+  fpath=($HOMEBREW_PREFIX/share/zsh/site-functions(N) $fpath)
 fi
 
-# Customize to your needs...
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
+# Source Prezto.
+source "$DOTFILEDIR/riptide/init.zsh"
 
+# Autojump: Homebrew, then Debian/Ubuntu.
+for _aj in $HOMEBREW_PREFIX/etc/profile.d/autojump.sh /usr/share/autojump/autojump.zsh; do
+  if [[ -f $_aj ]]; then
+    source "$_aj"
+    break
+  fi
+done
+unset _aj
+
+# Activate virtualenv in a git repo: a .venv dir, a .venv file naming a pyenv
+# env, or a pyenv env named like the repo.
 function workon_cwd {
   if [[ -z "$WORKON_CWD" ]]; then
     local WORKON_CWD=1
@@ -33,9 +43,10 @@ function workon_cwd {
       PROJECT_ROOT="."
     fi
     # Check for virtualenv name override
+    local ENV_NAME
     if [[ -f "$PROJECT_ROOT/.venv" ]]; then
       ENV_NAME="$(cat "$PROJECT_ROOT/.venv")"
-    elif [[ -f "$PROJECT_ROOT/.venv/bin/activate" ]];then
+    elif [[ -f "$PROJECT_ROOT/.venv/bin/activate" ]]; then
       ENV_NAME="$PROJECT_ROOT/.venv"
     elif [[ "$PROJECT_ROOT" != "." ]]; then
       ENV_NAME="${PROJECT_ROOT:t}"
@@ -44,32 +55,37 @@ function workon_cwd {
     fi
     if [[ "$ENV_NAME" != "" ]]; then
       # Activate the environment only if it is not already active
-      if [[ "$VIRTUAL_ENV" != "$WORKON_HOME/$ENV_NAME" ]]; then
-        if [[ -e "$WORKON_HOME/$ENV_NAME/bin/activate" ]]; then
-          workon "$ENV_NAME" && export CD_VIRTUAL_ENV="$ENV_NAME"
-        elif [[ -e "$ENV_NAME/bin/activate" ]]; then
-          source $ENV_NAME/bin/activate && export CD_VIRTUAL_ENV="$ENV_NAME"
+      if [[ -f "$ENV_NAME/bin/activate" ]]; then
+        # A committed activate script is someone else's code: don't run it.
+        if [[ -n $GIT_REPO_ROOT ]] && git -C "$PROJECT_ROOT" ls-files \
+            --error-unmatch "$ENV_NAME/bin/activate" &> /dev/null; then
+          print -u2 "workon_cwd: $ENV_NAME/bin/activate is tracked in git, skipped"
+        elif [[ "$VIRTUAL_ENV" != "${ENV_NAME:A}" ]]; then
+          source "$ENV_NAME/bin/activate" && export CD_VIRTUAL_ENV="$ENV_NAME"
         fi
+      elif (( $+commands[pyenv] )) && [[ "$VIRTUAL_ENV" != */"$ENV_NAME" ]]; then
+        pyenv activate "$ENV_NAME" 2> /dev/null && export CD_VIRTUAL_ENV="$ENV_NAME"
       fi
     elif [[ -n $CD_VIRTUAL_ENV && -n $VIRTUAL_ENV ]]; then
       # We've just left the repo, deactivate the environment
       # Note: this only happens if the virtualenv was activated automatically
-      deactivate && unset CD_VIRTUAL_ENV
+      if (( $+functions[deactivate] )); then
+        deactivate
+      else
+        pyenv deactivate
+      fi
+      unset CD_VIRTUAL_ENV
     fi
   fi
 }
 
-function legit_prompt_info {
-  ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-  echo "${ref#refs/heads/}"
-}
-
-function frameworkpython {
-    if [[ ! -z "$VIRTUAL_ENV" ]]; then
-        PYTHONHOME=$VIRTUAL_ENV /usr/local/bin/python3 "$@"
-    else
-        /usr/local/bin/python "$@"
-    fi
+# Disabled: sourcing any ./.env on cd runs code from whatever you cd into.
+# Run it by hand if needed.
+function auto_env {
+  # not ideal, .env became a convention after i used it as .sh files.
+  if [[ -s "./.env" ]]; then
+    source .env
+  fi
 }
 
 # Append workon_cwd to the chpwd_functions array, so it will be called on cd
@@ -78,7 +94,78 @@ if ! (( $chpwd_functions[(I)workon_cwd] )); then
   chpwd_functions+=(workon_cwd)
 fi
 
-[[ -s $(brew --prefix)/etc/profile.d/autojump.sh ]] && . $(brew --prefix)/etc/profile.d/autojump.sh
-test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+# Commit with a past date, default 10 hours ago: commitold -2d, -30M, -3H.
+function commitold {
+  local off=${1:--10H} _dt y=y
+  if [[ "$OSTYPE" == darwin* ]]; then
+    _dt=$(date -v$off "+%c +0530")
+  else
+    local -A units=(S seconds M minutes H hours d days m months y years)
+    _dt=$(date -d "${off%?} ${units[${off[-1]}]}" "+%c +0530")
+  fi
+  vared -p "Create a commit on ${_dt}? " y
+  if [[ $y == y ]]; then
+    GIT_AUTHOR_DATE=$_dt GIT_COMMITTER_DATE=$_dt git commit
+  fi
+}
+
+if (( $+commands[nvim] )); then
+  alias vi="nvim"
+  alias vim="nvim"
+fi
+alias :3='ccat'
+alias hai='cd'
+alias iz='ls'
+alias plz='pwd'
+alias pwned='ssh'
+alias rulez='git push'
+alias bringz='git pull'
+
+alias such='git'
+alias very='git'
+alias wow='git status'
+
+alias ariapaste='aria2c $(pbpaste)'
+
+# thefuck is slow to init: load it on first use.
+if (( $+commands[thefuck] )); then
+  function fuck {
+    unfunction fuck
+    eval "$(thefuck --alias fuck)"
+    fuck "$@"
+  }
+fi
+
+export MOSH_ESCAPE_KEY='Ctrl-a'
+export MOSH_TITLE_NOPREFIX=''
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  export LC_ALL=en_US.UTF-8
+  export LANG=en_US.UTF-8
+  export PGDATA='/usr/local/var/postgres'
+
+  function frameworkpython {
+    if [[ ! -z "$VIRTUAL_ENV" ]]; then
+      PYTHONHOME=$VIRTUAL_ENV /usr/local/bin/ipython3 "$@"
+    else
+      /usr/local/bin/ipython "$@"
+    fi
+  }
+
+  function desktop_icons {
+    defaults write com.apple.finder CreateDesktop $1
+    killall Finder
+  }
+
+  alias am="open /Applications/Utilities/Activity\ Monitor.app"
+  alias subl="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl"
+  alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+fi
+
+if [[ -s "${ZDOTDIR:-$HOME}/.zshrc.local" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zshrc.local"
+fi
+
+uptime | sed -n 's/^.*\(up .*\), .* user.*/-> Been \1/p'
 
 cd .

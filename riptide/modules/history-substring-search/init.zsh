@@ -50,8 +50,13 @@ if [[ -n "$key_info" ]]; then
   bindkey -M vicmd "j" history-substring-search-down
 
   # Emacs and Vi
+  # Both arrow encodings: terminfo's (application mode) and the normal-mode
+  # one, which some terminals and tmux send even after smkx.
   for keymap in 'emacs' 'viins'; do
     bindkey -M "$keymap" "$key_info[Up]" history-substring-search-up
     bindkey -M "$keymap" "$key_info[Down]" history-substring-search-down
+    bindkey -M "$keymap" '^[[A' history-substring-search-up
+    bindkey -M "$keymap" '^[[B' history-substring-search-down
   done
+  unset keymap
 fi

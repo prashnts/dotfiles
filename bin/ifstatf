@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
-ifstat -bi en0 0.1 1 | tail -n 1 | \
+# Download kbit/s on the default interface, sampled over 0.1 s.
+if [[ -d /sys/class/net ]]; then
+  dev=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+  f=/sys/class/net/${dev:-lo}/statistics/rx_bytes
+  a=$(<"$f"); sleep 0.1; b=$(<"$f")
+  echo $(( (b - a) * 80 / 1024 ))
+else
+  dev=$(route -n get default 2>/dev/null | awk '/interface:/{print $2}')
+  ifstat -bi "${dev:-en0}" 0.1 1 | tail -n 1
+fi | \
   awk '
     {printf("%d %s %s",
       ($1 > 1000) ? $1 / 1024 : $1,

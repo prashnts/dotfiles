@@ -9,4 +9,4 @@
 	url = https://github.com/zsh-users/zsh-completions.git
 [submodule "riptide/modules/autosuggestions/external"]
 	path = riptide/modules/autosuggestions/external
-	url = https://github.com/tarruda/zsh-autosuggestions
+	url = https://github.com/zsh-users/zsh-autosuggestions.git

@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
-uptime | grep -oE 'load averages:(.*)' | \
+# 1-min load: /proc on Linux, sysctl on macOS.
+if [[ -r /proc/loadavg ]]; then
+  read -r l _ < /proc/loadavg
+else
+  l=$(sysctl -n vm.loadavg | awk '{print $2}')
+fi
+
+echo "load averages: $l" | \
   awk '
     {printf("%.1f %s",
       $3,

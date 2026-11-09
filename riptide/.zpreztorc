@@ -52,6 +52,25 @@ zstyle ':prezto:module:git:status:ignore' submodules 'all'
 
 zstyle ':prezto:module:prompt' theme 'damned' -d
 
+# Host segment background (256-color) per host class. The class is the
+# hostname prefix (pi-diserver -> pi), or set per host in ~/.zpreztorc.local:
+#   zstyle ':prezto:module:prompt:damned:host' class 'rx'   # or a number
+# show: 'ssh' (default), 'always' or 'never'.
+zstyle ':prezto:module:prompt:damned:host' colors \
+  'framework' 24 \
+  'pi'        125 \
+  'rx'        29 \
+  'amd'       130 \
+  'other'     60
+
+# Git status in the prompt only for repos with a remote matching one of these
+# (unknown repos can run commands from their config). Add more in
+# ~/.zpreztorc.local by repeating the whole list.
+zstyle ':prezto:module:prompt:damned:git' trusted \
+  '*github.com[:/]prashnts/*' \
+  '*git.nb.malow.im*/noop/*' \
+  '*10.0.1.<->:4222/noop/*'
+
 zstyle ':prezto:module:syntax-highlighting' highlighters \
   'main' \
   'brackets' \

@@ -14,8 +14,23 @@ fi
 # Add zsh-completions to $fpath.
 fpath=("${0:h}/external/src" $fpath)
 
-# Load and initialize the completion system ignoring insecure directories.
-autoload -Uz compinit && compinit -i
+# Needed for the (#q) glob qualifier below.
+setopt EXTENDED_GLOB
+
+# Load and initialize the completion system ignoring insecure directories with a
+# cache time of 20 hours: full check once a day, fast -C load otherwise.
+autoload -Uz compinit
+_comp_path="${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompdump"
+if [[ $_comp_path(#qNmh-20) ]]; then
+  # -C (skip function check) implies -i (skip security check).
+  compinit -C -d "$_comp_path"
+else
+  mkdir -p "$_comp_path:h"
+  compinit -i -d "$_comp_path"
+  # Keep $_comp_path younger than cache time even if it isn't regenerated.
+  touch "$_comp_path"
+fi
+unset _comp_path
 
 #
 # Options
@@ -36,7 +51,7 @@ unsetopt FLOW_CONTROL      # Disable start/stop characters in shell editor.
 
 # Use caching to make completion for commands such as dpkg and apt usable.
 zstyle ':completion::complete:*' use-cache on
-zstyle ':completion::complete:*' cache-path "${ZDOTDIR:-$HOME}/.zcompcache"
+zstyle ':completion::complete:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/prezto/zcompcache"
 
 # Case-insensitive (all), partial-word, and then substring completion.
 if zstyle -t ':prezto:module:completion:*' case-sensitive; then

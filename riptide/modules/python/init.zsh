@@ -30,7 +30,7 @@ else
 fi
 
 # Return if requirements are not found.
-if (( ! $+commands[python] && ! $+commands[pyenv] )); then
+if (( ! $+commands[python] && ! $+commands[python3] && ! $+commands[pyenv] )); then
   return 1
 fi
 
@@ -49,4 +49,8 @@ fi
 # Aliases
 #
 
-alias py='python'
+if (( $+commands[python] )); then
+  alias py='python'
+else
+  alias py='python3'
+fi

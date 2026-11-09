@@ -58,10 +58,15 @@ function prompt_damned_right_info {
 }
 
 function prompt_damned_precmd_async {
-  # Get Git repository information.
-  if (( $+functions[git-info] )); then
-    git-info
-    typeset -p git_info >! "$_prompt_damned_precmd_async_data"
+  # Start empty: an untrusted repo must not show the last trusted result.
+  : >! "$_prompt_damned_precmd_async_data"
+
+  # Get Git repository information, trusted repos only (see prompt_damned_git_trust).
+  # core.fsmonitor forced off: a repo config could make it run any command.
+  if (( $+functions[git-info] && _prompt_damned_git_trusted )); then
+    GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.fsmonitor GIT_CONFIG_VALUE_0=false \
+      git-info
+    typeset -p git_info >> "$_prompt_damned_precmd_async_data"
   fi
 
   if (( $+functions[python-info] )); then
@@ -76,6 +81,9 @@ function prompt_damned_precmd_async {
 function prompt_damned_precmd {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
+
+  # Drop git info left over from a trusted repo.
+  (( _prompt_damned_git_trusted )) || unset git_info
 
   # Format PWD.
   prompt_damned_pwd
@@ -95,18 +103,66 @@ function prompt_damned_precmd {
   _prompt_damned_precmd_async_pid=$!
 }
 
+# git status runs config from the repo (fsmonitor, filters), so it only runs
+# where a remote matches ':prezto:module:prompt:damned:git' trusted patterns.
+# Runs on cd; reading config executes nothing.
+function prompt_damned_git_trust {
+  _prompt_damned_git_trusted=0
+  local -a patterns urls
+  local url pattern
+  zstyle -a ':prezto:module:prompt:damned:git' trusted 'patterns'
+  (( $#patterns )) || return 0
+  urls=(${(f)"$(command git config --local --get-regexp '^remote\..*\.url$' 2> /dev/null)"})
+  for url in ${urls#* }; do
+    for pattern in $patterns; do
+      if [[ $url == ${~pattern} ]]; then
+        _prompt_damned_git_trusted=1
+        return 0
+      fi
+    done
+  done
+}
+
+function prompt_damned_exit {
+  rm -f "$_prompt_damned_precmd_async_data"
+}
+
 function prompt_damned_setup {
   setopt LOCAL_OPTIONS
   unsetopt XTRACE KSH_ARRAYS
   prompt_opts=(cr percent subst)
   _prompt_damned_precmd_async_pid=0
-  _prompt_damned_precmd_async_data="${TMPPREFIX}-prompt_damned_data"
+  # One file per shell, else concurrent shells read each other's git status.
+  _prompt_damned_precmd_async_data="${TMPPREFIX:-/tmp/zsh}-prompt_damned_data.$$"
+
+  # Host segment, see ':prezto:module:prompt:damned:host' in .zpreztorc.
+  # show: 'ssh' (default) over SSH only, 'always' or 'never'.
+  # class: a key of 'colors' or a 0-255 color; default is the hostname prefix
+  # (pi-diserver -> pi), falling back to 'other'.
+  local show_host host_class host_color
+  local -A host_colors
+  zstyle -s ':prezto:module:prompt:damned:host' show 'show_host' || show_host='ssh'
+  zstyle -a ':prezto:module:prompt:damned:host' colors 'host_colors'
+  zstyle -s ':prezto:module:prompt:damned:host' class 'host_class' \
+    || host_class=${HOST%%[-._0-9]*}
+  if [[ $host_class == <0-255> ]]; then
+    host_color=$host_class
+  else
+    host_color=${host_colors[$host_class]:-${host_colors[other]:-60}}
+  fi
+  _prompt_damned_host=''
+  if [[ $show_host == always || ( $show_host == ssh && -n $SSH_CONNECTION ) ]]; then
+    _prompt_damned_host="%K{$host_color}%F{252} %m %K{238}%F{$host_color}%f"
+  fi
 
   # Load required functions.
   autoload -Uz add-zsh-hook
 
   # Add hook for calling git-info before each command.
   add-zsh-hook precmd prompt_damned_precmd
+  add-zsh-hook zshexit prompt_damned_exit
+  add-zsh-hook chpwd prompt_damned_git_trust
+  prompt_damned_git_trust
 
   # Set editor-info parameters.
   zstyle ':prezto:module:editor:info:completing' format '%B%F{red}...%f%b'
@@ -130,7 +186,7 @@ function prompt_damned_setup {
     ' %F{14}⑉%f%F{5}%v%f'
 
   # Define prompts.
-  PROMPT='%K{238}%F{252} $_prompt_damned_pwd %f%k%F{238}%f'
+  PROMPT='${_prompt_damned_host}%K{238}%F{252} $_prompt_damned_pwd %f%k%F{238}%f'
   PROMPT+='${editor_info[keymap]} '
   RPROMPT=''
   SPROMPT='bruh, correct %F{1}%R%f to %F{2}%r%f [nyae]? '

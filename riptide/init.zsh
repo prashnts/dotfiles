@@ -1,5 +1,6 @@
 #
-# Initializes Prezto.
+# Initializes Riptide, a Prezto fork. Module API matches upstream Prezto, so
+# upstream modules can go in modules/ or contrib/ (or a 'pmodule-dirs' dir).
 #
 # Authors:
 #   Sorin Ionescu <sorin.ionescu@gmail.com>
@@ -10,9 +11,9 @@
 #
 
 # Check for the minimum supported version.
-min_zsh_version='4.3.17'
+min_zsh_version='4.3.11'
 if ! autoload -Uz is-at-least || ! is-at-least "$min_zsh_version"; then
-  print "prezto: old shell detected, minimum required: $min_zsh_version" >&2
+  printf "prezto: old shell detected, minimum required: %s\n" "$min_zsh_version" >&2
   return 1
 fi
 unset min_zsh_version
@@ -24,44 +25,70 @@ unset min_zsh_version
 # Loads Prezto modules.
 function pmodload {
   local -a pmodules
+  local -a pmodule_dirs
+  local -a locations
   local pmodule
-  local pfunction_glob='^([_.]*|prompt_*_setup|README*)(-.N:t)'
+  local pmodule_location
+  local pfunction_glob='^([_.]*|prompt_*_setup|README*|*~)(-.N:t)'
+
+  # Load in any additional directories and warn if they don't exist
+  zstyle -a ':prezto:load' pmodule-dirs 'user_pmodule_dirs'
+  for user_dir in "$user_pmodule_dirs[@]"; do
+    if [[ ! -d "$user_dir" ]]; then
+      echo "$0: Missing user module dir: $user_dir"
+    fi
+  done
+
+  pmodule_dirs=("$ZPREZTODIR/modules" "$ZPREZTODIR/contrib" "$user_pmodule_dirs[@]")
 
   # $argv is overridden in the anonymous function.
   pmodules=("$argv[@]")
-
-  # Add functions to $fpath.
-  fpath=(${pmodules:+$DOTFILEDIR/riptide/modules/${^pmodules}/functions(/FN)} $fpath)
-
-  function {
-    local pfunction
-
-    # Extended globbing is needed for listing autoloadable function directories.
-    setopt LOCAL_OPTIONS EXTENDED_GLOB
-
-    # Load Prezto functions.
-    for pfunction in $DOTFILEDIR/riptide/modules/${^pmodules}/functions/$~pfunction_glob; do
-      autoload -Uz "$pfunction"
-    done
-  }
 
   # Load Prezto modules.
   for pmodule in "$pmodules[@]"; do
     if zstyle -t ":prezto:module:$pmodule" loaded 'yes' 'no'; then
       continue
-    elif [[ ! -d "$DOTFILEDIR/riptide/modules/$pmodule" ]]; then
-      print "$0: no such module: $pmodule" >&2
-      continue
     else
-      if [[ -s "$DOTFILEDIR/riptide/modules/$pmodule/init.zsh" ]]; then
-        source "$DOTFILEDIR/riptide/modules/$pmodule/init.zsh"
+      locations=(${pmodule_dirs:+${^pmodule_dirs}/$pmodule(-/FN)})
+      if (( ${#locations} > 1 )); then
+        if ! zstyle -t ':prezto:load' pmodule-allow-overrides 'yes'; then
+          print "$0: conflicting module locations: $locations"
+          continue
+        fi
+      elif (( ${#locations} < 1 )); then
+        print "$0: no such module: $pmodule"
+        continue
+      fi
+
+      # Grab the full path to this module
+      pmodule_location=${locations[-1]}
+
+      # Add functions to $fpath.
+      fpath=(${pmodule_location}/functions(-/FN) $fpath)
+
+      function {
+        local pfunction
+
+        # Extended globbing is needed for listing autoloadable function directories.
+        setopt LOCAL_OPTIONS EXTENDED_GLOB
+
+        # Load Prezto functions.
+        for pfunction in ${pmodule_location}/functions/$~pfunction_glob; do
+          autoload -Uz "$pfunction"
+        done
+      }
+
+      if [[ -s "${pmodule_location}/init.zsh" ]]; then
+        source "${pmodule_location}/init.zsh"
+      elif [[ -s "${pmodule_location}/${pmodule}.plugin.zsh" ]]; then
+        source "${pmodule_location}/${pmodule}.plugin.zsh"
       fi
 
       if (( $? == 0 )); then
         zstyle ":prezto:module:$pmodule" loaded 'yes'
       else
         # Remove the $fpath entry.
-        fpath[(r)$DOTFILEDIR/riptide/modules/${pmodule}/functions]=()
+        fpath[(r)${pmodule_location}/functions]=()
 
         function {
           local pfunction
@@ -71,7 +98,7 @@ function pmodload {
           setopt LOCAL_OPTIONS EXTENDED_GLOB
 
           # Unload Prezto functions.
-          for pfunction in $DOTFILEDIR/riptide/modules/$pmodule/functions/$~pfunction_glob; do
+          for pfunction in ${pmodule_location}/functions/$~pfunction_glob; do
             unfunction "$pfunction"
           done
         }
@@ -86,10 +113,18 @@ function pmodload {
 # Prezto Initialization
 #
 
-source "$DOTFILEDIR/riptide/.zpreztorc"
+# Riptide lives at $DOTFILEDIR/riptide; ${0:h} works wherever it is sourced from.
+ZPREZTODIR=${0:A:h}
+: ${DOTFILEDIR:=${ZPREZTODIR:h}}
+
+# Shared config from the repo, then per-host overrides (not in the repo).
+source "$ZPREZTODIR/.zpreztorc"
+if [[ -s "${ZDOTDIR:-$HOME}/.zpreztorc.local" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zpreztorc.local"
+fi
 
 # Disable color and theme in dumb terminals.
-if [[ "$TERM" == 'dumb' ]]; then
+if [[ $TERM == dumb ]]; then
   zstyle ':prezto:*:*' color 'no'
   zstyle ':prezto:module:prompt' theme 'off'
 fi
@@ -98,6 +133,9 @@ fi
 zstyle -a ':prezto:load' zmodule 'zmodules'
 for zmodule ("$zmodules[@]") zmodload "zsh/${(z)zmodule}"
 unset zmodule{s,}
+
+# Load more specific 'run-help' function from $fpath.
+(( $+aliases[run-help] )) && unalias run-help && autoload -Uz run-help
 
 # Autoload Zsh functions.
 zstyle -a ':prezto:load' zfunction 'zfunctions'
@@ -108,5 +146,3 @@ unset zfunction{s,}
 zstyle -a ':prezto:load' pmodule 'pmodules'
 pmodload "$pmodules[@]"
 unset pmodules
-
-SH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS+=(editor-info)
