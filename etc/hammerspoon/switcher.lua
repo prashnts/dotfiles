@@ -1,4 +1,5 @@
--- Windows-style switcher (was BetterTouchTool): ⌥⇥ next, ⌥⇧⇥ back.
+-- Windows-style switcher (was BetterTouchTool): ⌘⇥ next, ⌘⇧⇥ back,
+-- in place of the macOS app switcher.
 -- Windows, not apps, most recently focused first (mouse or keyboard); a tap
 -- goes back to the last window, same app or not. When an app raises all its
 -- windows, only the one that got focus moves up. No thumbnails: those need
@@ -17,8 +18,8 @@ M.switcher = hs.window.switcher.new(M.filter,
 local function fwd() M.switcher:next() end
 local function prev() M.switcher:previous() end
 M.keys = {
-  hs.hotkey.bind({'alt'}, 'tab', fwd, nil, fwd),
-  hs.hotkey.bind({'alt', 'shift'}, 'tab', prev, nil, prev),
+  hs.hotkey.bind({'cmd'}, 'tab', fwd, nil, fwd),
+  hs.hotkey.bind({'cmd', 'shift'}, 'tab', prev, nil, prev),
 }
 
 return M
