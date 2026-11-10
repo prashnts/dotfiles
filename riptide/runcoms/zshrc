@@ -162,6 +162,24 @@ if [[ "$OSTYPE" == darwin* ]]; then
   alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 fi
 
+# ndot apply writes the stamp: reload at the next prompt, unless jobs run.
+_ndot_stamp=$HOME/.cache/ndot/rev _ndot_rev=''
+[[ -r $_ndot_stamp ]] && read -r _ndot_rev < $_ndot_stamp
+function _ndot_precmd {
+  local rev=''
+  [[ -r $_ndot_stamp ]] && read -r rev < $_ndot_stamp
+  [[ $rev == $_ndot_rev ]] && return
+  _ndot_rev=$rev
+  if (( ${#jobstates} )); then
+    print -P '%F{yellow}dotfiles updated: exec zsh when your jobs are done%f'
+  elif [[ -o login ]]; then
+    exec zsh -l
+  else
+    exec zsh
+  fi
+}
+precmd_functions+=(_ndot_precmd)
+
 if [[ -s "${ZDOTDIR:-$HOME}/.zshrc.local" ]]; then
   source "${ZDOTDIR:-$HOME}/.zshrc.local"
 fi

@@ -18,6 +18,10 @@ on new or existing host (installs git/zsh if missing, re-run to update):
 
 or: `./install.sh [-c class] [-y]`.
 
+Updates by hand: `ndot update` shows incoming commits, asks, fast-forwards,
+relinks, reloads Hammerspoon and open shells (at their next prompt).
+Hammerspoon shows a menu bar `•` when the remote is ahead (`ndot check`).
+
 Links `~/.zshenv ~/.zprofile ~/.zshrc ~/.zlogin ~/.zlogout ~/.tmux.conf`. Existing files go to `~/.dotfiles-backup/`.
 Not checked in (secrets and host-only bits): `~/.zprofile.local`,
 `~/.zshrc.local`, `~/.zpreztorc.local`.

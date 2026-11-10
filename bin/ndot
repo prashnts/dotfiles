@@ -1,0 +1,78 @@
+#!/bin/sh
+# Dotfiles updates, by hand only.
+#   ndot check        exit 0 up to date, 10 update on the remote (prints it), 1 error
+#   ndot update [-y]  show incoming commits, ask, fast-forward, apply
+#   ndot apply        relink (install.sh -y), reload Hammerspoon + zsh sessions
+# Remote access is read-only HTTPS (no SSH key, no YubiKey touch). Apply writes
+# ~/.cache/ndot/rev: Hammerspoon watches it, shells check it at each prompt.
+set -eu
+
+repo=$(cd "$(dirname "$0")/.." && pwd -P)
+ref=${NDOT_REF:-master}
+stamp=$HOME/.cache/ndot/rev
+g() { git -C "$repo" "$@"; }
+
+url() {
+  u=$(g remote get-url origin)
+  case $u in
+    git@github.com:*) u=https://github.com/${u#git@github.com:} ;;
+    ssh://git@github.com/*) u=https://github.com/${u#ssh://git@github.com/} ;;
+  esac
+  echo "$u"
+}
+
+check() {
+  remote=$(GIT_TERMINAL_PROMPT=0 g ls-remote "$(url)" "refs/heads/$ref" | cut -f1)
+  [ -n "$remote" ] || { echo "can't read $ref from $(url)" >&2; exit 1; }
+  # Missing object = new commits; known and in HEAD = we're there or ahead.
+  if g merge-base --is-ancestor "$remote" HEAD 2>/dev/null; then
+    echo "up to date"
+    exit 0
+  fi
+  echo "$remote"
+  exit 10
+}
+
+apply() {
+  out=$(sh "$repo/install.sh" -y)
+  printf '%s\n' "$out" | grep -v -e ' -> ' -e '^host class' || true
+  mkdir -p "$(dirname "$stamp")"
+  echo "$(g rev-parse HEAD) $(date +%s)" > "$stamp"
+  echo "applied $(g log -1 --format='%h %s'): Hammerspoon reloads," \
+    "shells at their next prompt"
+}
+
+update() {
+  if [ -n "$(g status --porcelain --ignore-submodules)" ]; then
+    echo "$repo has local changes, not updating" >&2
+    exit 1
+  fi
+  GIT_TERMINAL_PROMPT=0 g fetch -q "$(url)" "+refs/heads/$ref:refs/remotes/origin/$ref"
+  new=origin/$ref
+  if ! g merge-base --is-ancestor "$new" HEAD; then
+    g --no-pager log --format='  %h %s (%an, %ar)' "HEAD..$new"
+    g --no-pager diff --stat "HEAD...$new"
+    if [ "${1:-}" != -y ]; then
+      printf 'apply? [y/N] '
+      read -r a < /dev/tty || a=''
+      case $a in y|Y) ;; *) exit 1 ;; esac
+    fi
+    g merge -q --ff-only "$new" \
+      || { echo "can't fast-forward to $new (local commits?)" >&2; exit 1; }
+    g submodule update -q --init --recursive
+  fi
+  # Also applies a pull done by hand.
+  read -r applied _ 2>/dev/null < "$stamp" || applied=''
+  if [ "$applied" = "$(g rev-parse HEAD)" ]; then
+    echo "up to date"
+  else
+    apply
+  fi
+}
+
+case ${1:-} in
+  check) check ;;
+  update) shift; update "$@" ;;
+  apply) apply ;;
+  *) sed -n 2,6p "$0" >&2; exit 2 ;;
+esac
