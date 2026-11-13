@@ -46,6 +46,13 @@ fi
 if [ "$(uname)" = Darwin ]; then
   link "$repo/etc/hammerspoon" "$HOME/.hammerspoon"
 fi
+# KiCad on Linux: Backspace deletes too, like on the Mac (Moonlight has no
+# Delete key). Only actions listed in user.hotkeys change; others stay default.
+if [ "$(uname)" = Linux ]; then
+  for d in "$HOME"/.config/kicad/[0-9]*/; do
+    [ -d "$d" ] && link "$repo/etc/kicad/user.hotkeys" "${d}user.hotkeys"
+  done
+fi
 
 # History: riptide uses ~/.zhistory, omz used ~/.zsh_history (same format).
 # Old lines first, then link the old name so both stay in one file.

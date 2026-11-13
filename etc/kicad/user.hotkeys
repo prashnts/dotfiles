@@ -1,0 +1,2 @@
+common.Interactive.delete	Del	Back
+pcbnew.InteractiveEdit.deleteFull	Shift+Del	Shift+Back
