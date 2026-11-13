@@ -5,4 +5,4 @@ if [[ -s "$GIT_TOPLEVEL/.env" ]]; then
   source $GIT_TOPLEVEL/.env
 fi
 export PYENV_VERSION=$GIT_DIRNAME
-~/.pyenv/shims/python $@
+~/.pyenv/shims/python "$@"

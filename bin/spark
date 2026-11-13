@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2068  # holman/spark splits its args on purpose
 #
 # spark
 # https://github.com/holman/spark

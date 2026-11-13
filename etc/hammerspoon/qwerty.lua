@@ -1,5 +1,7 @@
--- QWERTY reference on the French ISO board: hold Caps Lock to peek,
+-- QWERTY reference on an Apple ISO board: hold Caps Lock to peek,
 -- hyper+/ pins it. Big: what the key types (US + keys.lua). Orange: the cap.
+-- Caps per machine: French by default, QWERTY ISO after (in the console)
+-- hs.settings.set('qwerty.caps', 'iso').
 local M = {}
 local U, GAP, PAD = 52, 5, 14
 
@@ -45,6 +47,13 @@ local rows = {
   row(mod('⇧', 1.25), mod('⇧', 1, '<'), letters('zxcvbnm', 'wxcvbn,'),
       k(',', '<', ';'), k('.', '>', ':'), k('/', '?', '='), mod('⇧', 2.25)),
 }
+if hs.settings.get('qwerty.caps') == 'iso' then
+  -- QWERTY caps match what the keys type, except the two keys.lua swaps.
+  for _, r in ipairs(rows) do
+    for _, key in ipairs(r) do key.cap = nil end
+  end
+  rows[1][1].cap, rows[4][2].cap = '§', '`'
+end
 
 local function text(s, x, y, w, size, color)
   return {type = 'text', text = s, textSize = size, textColor = color,

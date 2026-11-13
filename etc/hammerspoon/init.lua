@@ -7,17 +7,18 @@ hs.allowAppleScript(false)
 local keys = require 'keys'
 local qwerty = require 'qwerty'
 local wifi = require 'wifisleep'
-local devtools = require 'devtools'
+local space = require 'space'
 local apps = require 'apps'
 require 'ndot'
 require 'switcher'
+require 'moonlight'
 
 -- Caps Lock held alone: QWERTY peek. Caps Lock + key: hyper.
 keys.hold(function() qwerty.peek(true) end, function() qwerty.peek(false) end)
 keys.bind('/', qwerty.pin)
 keys.bind('w', wifi.toggle)
 keys.bind('r', hs.reload)
-keys.bind('space', devtools.toggle)
+keys.bind('space', space.run)
 keys.bind('s', apps.focus('md.obsidian'))
 keys.forward('abcdefghijklmnopqrstuvwxyz0123456789')
 
